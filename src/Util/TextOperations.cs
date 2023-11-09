@@ -5,10 +5,19 @@ using System.Text.RegularExpressions;
 namespace UtilService.Util;
 
 /// <summary>
-/// Classe de mátodos de extensão para objetos serem transformados em string formatada
+/// Classe dedicated for strngs
 /// </summary>
 public static class TextOperations
 {
+    /// <summary>
+    /// Set string empty if null
+    /// </summary>
+    /// <param name="obj"></param>
+    /// <returns></returns>
+    public static string ToStringEmptyIfNull(this object obj)
+    {
+        return obj == null ? string.Empty : obj.ToString();
+    }
     /// <summary>
     /// Trims the string properties of a data model
     /// </summary>
