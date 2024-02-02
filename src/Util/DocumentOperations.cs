@@ -104,4 +104,25 @@ public static class DocumentOperations
             return "";
         }
     }
+    /// <summary>
+    /// Format CrmDocument to seven digits
+    /// </summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public static string FormatCrmDocument(this string value)
+    {
+        try
+        {
+            if (!value.IsNullOrWhiteSpace())
+            {
+                return value.PadLeft(7, '0');
+            }
+
+            return value;
+        }
+        catch (Exception)
+        {
+            return "";
+        }
+    }
 }

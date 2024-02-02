@@ -28,7 +28,7 @@ public static class EnumOperations
     /// <typeparam name="TEnum"></typeparam>
     /// <returns></returns>
     /// <exception cref="ArgumentException"></exception>
-    public static TEnum GetEnumValueFromDefaultValue<TEnum>(string defaultValue)
+    public static TEnum GetEnumValueFromDefaultValue<TEnum>(this string defaultValue)
     {
         foreach (TEnum enumValue in Enum.GetValues(typeof(TEnum)))
         {
@@ -133,12 +133,7 @@ public static class EnumOperations
         var listaDeStrings = valoresEnum.Cast<T>().Where(o => o.GetDescription() != null).Select(e => e.GetDescription()).ToList();
         return listaDeStrings!;
     }
-    /// <summary>
-    /// Converts an enum to a list of the enum's items
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
-
+    
     /// <summary>
     /// Retrieves the description of the enum
     /// </summary>
@@ -173,7 +168,26 @@ public static class EnumOperations
     {
         return Convert.ToInt32(@enum);
     }
-    
+
+    /// <summary>
+    /// Convert int to specific enum
+    /// </summary>
+    /// <param name="valorInteiro"></param>
+    /// <typeparam name="TEnum"></typeparam>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
+    public static TEnum IntToEnum<TEnum>(this int valorInteiro) where TEnum : Enum
+    {
+        if (Enum.IsDefined(typeof(TEnum), valorInteiro))
+        {
+            return (TEnum)Enum.ToObject(typeof(TEnum), valorInteiro);
+        }
+        else
+        {
+            throw new ArgumentException($"The value {valorInteiro} cant convert to enum {typeof(TEnum).Name}.");
+        }
+    }
+
 }
 
 /// <summary>
@@ -199,7 +213,7 @@ public class EnumDataAnnotations
         }
 
         /// <inheritdoc />
-        protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
+        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
             if (value == null)
             {

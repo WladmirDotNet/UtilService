@@ -23,7 +23,7 @@ public static class ImageOperation
     /// </summary>
     /// <param name="imagemBase64"></param>
     /// <returns></returns>
-    public static bool IsImage(string imagemBase64)
+    public static bool IsImage(this string imagemBase64)
     {
         try
         {
@@ -35,7 +35,7 @@ public static class ImageOperation
             return false;
         }
     }
-        
+
     private static bool IsImageFromByte(byte[] bytes)
     {
         string jpgHeader = "FFD8FFE0";

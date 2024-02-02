@@ -1,11 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace UtilService.Util;
 
 /// <summary>
-/// Classe dedicated for strngs
+/// Classe de mátodos de extensão para objetos serem transformados em string formatada
 /// </summary>
 public static class TextOperations
 {
@@ -18,6 +20,35 @@ public static class TextOperations
     {
         return obj == null ? string.Empty : obj.ToString();
     }
+
+    /// <summary>
+    /// Convert bool values in "SIM" or "NÃO". Can be uppercase (portuguese)
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="upperCase"></param>
+    /// <returns></returns>
+    public static string ToSimNao(this bool value, bool upperCase = false)
+    {
+        if (value)
+            return upperCase ? "SIM" : "sim";
+
+        return upperCase ? "NÃO" : "não";
+    }
+
+    /// <summary>
+    /// Convert bool values in "YES" or "NO". Can be uppercase (english)
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="upperCase"></param>
+    /// <returns></returns>
+    public static string ToYesNo(this bool value, bool upperCase = false)
+    {
+        if (value)
+            return upperCase ? "YES" : "yes";
+
+        return upperCase ? "NO" : "no";
+    }
+
     /// <summary>
     /// Trims the string properties of a data model
     /// </summary>
@@ -94,7 +125,7 @@ public static class TextOperations
     /// <returns></returns>
     public static string ToTrimOrEmpty(this string texto)
     {
-        return !string.IsNullOrEmpty(texto) ? texto.Trim().ToUpper() : string.Empty;
+        return !string.IsNullOrEmpty(texto) ? texto.Trim() : string.Empty;
     }
 
     /// <summary>
@@ -171,3 +202,32 @@ public static class TextOperations
         return string.Join(spliter,list);
     }
 }
+
+#region DataAnnotation
+
+/// <summary>
+/// Check if string is numeric only
+/// </summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
+public class NumericOnlyAttribute : ValidationAttribute
+{
+    /// <summary>
+    /// Validate numeric string
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="validationContext"></param>
+    /// <returns></returns>
+    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+    {
+        if (value == null)
+        {
+            return ValidationResult.Success;
+        }
+
+        var inputString = value.ToString();
+
+        return inputString.IsNumericOnly() ? ValidationResult.Success : new ValidationResult(ErrorMessage ?? "A string deve conter apenas caracteres numéricos.");
+    }
+}
+
+#endregion DataAnnotation

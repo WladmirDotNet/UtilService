@@ -1,5 +1,6 @@
 ﻿using System;
-using System.Text.RegularExpressions;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 namespace UtilService.Util;
 /// <summary>
@@ -31,8 +32,99 @@ public static class AddressValidator
     /// <returns></returns>
     public static bool IsValidCep(this string cep)
     {
-        var cleanedCep = Regex.Replace(cep, @"[^\d]", "");
+        if (!cep.IsNumericOnly())
+            return false;
 
-        return cleanedCep.Length == 8;
+        return cep.Length == 8;
     }
 }
+
+#region DataAnnotations
+
+/// <summary>
+/// CEP validator
+/// </summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
+public class ValidCepAttribute : ValidationAttribute
+{
+    /// <summary>
+    /// Check if CEP is valid
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="validationContext"></param>
+    /// <returns></returns>
+    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+    {
+        if (value == null)
+        {
+            return ValidationResult.Success;
+        }
+
+        string cep = value.ToString();
+
+        return cep.IsValidCep() ? ValidationResult.Success : new ValidationResult(ErrorMessage ?? "Formato de CEP inválido.");
+    }
+}
+
+/// <summary>
+/// Validate Brazilian UF
+/// </summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
+public class ValidUfBrasilAttribute : ValidationAttribute
+{
+    /// <summary>
+    /// Validate Brazilian UF
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="validationContext"></param>
+    /// <returns></returns>
+    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+    {
+        if (value == null)
+        {
+            return ValidationResult.Success;
+        }
+
+        var uf = value.ToString()?.ToUpper();
+
+        return IsValidUf(uf) ? ValidationResult.Success : new ValidationResult(ErrorMessage ?? "UF inválida.");
+    }
+
+    private bool IsValidUf(string uf)
+    {
+        string[] ufsValidas =
+        {
+            "AC",
+            "AL",
+            "AP", 
+            "AM", 
+            "BA", 
+            "CE", 
+            "DF", 
+            "ES", 
+            "GO", 
+            "MA", 
+            "MT", 
+            "MS", 
+            "MG", 
+            "PA", 
+            "PB", 
+            "PR", 
+            "PE", 
+            "PI",
+            "RJ", 
+            "RN", 
+            "RS", 
+            "RO", 
+            "RR", 
+            "SC", 
+            "SP", 
+            "SE", 
+            "TO"
+        };
+
+        return ufsValidas.Contains(uf);
+    }
+}
+
+#endregion DataAnnotations
