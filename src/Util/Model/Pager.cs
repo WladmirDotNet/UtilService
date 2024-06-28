@@ -1,6 +1,7 @@
 ﻿using System;
 
-namespace UtilService.Util;
+namespace UtilService.Util.Model;
+
 /// <summary>
 /// Class dedicated to pagination
 /// </summary>

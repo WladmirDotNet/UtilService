@@ -6,7 +6,7 @@ namespace UtilService.Util;
 /// <summary>
 /// Classe for generate strings
 /// </summary>
-public static class StringGenerator
+public static class StringGeneratorService
 {
       
     /// <summary>

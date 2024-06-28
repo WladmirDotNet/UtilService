@@ -8,7 +8,7 @@ namespace UtilService.Util;
 /// <summary>
 /// Class for files
 /// </summary>
-public static class FileOperations
+public static class FileService
 {
     /// <summary>
     /// Open a text file and convert each line into a list item

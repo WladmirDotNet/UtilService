@@ -3,10 +3,11 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
 namespace UtilService.Util;
+
 /// <summary>
 /// Classe for address
 /// </summary>
-public static class AddressValidator
+public static class AddressService
 {
 
     /// <summary>

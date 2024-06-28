@@ -7,8 +7,27 @@ namespace UtilService.Util;
 /// <summary>
 /// Classe to time
 /// </summary>
-public static class DateAndTimeOperations
+public static class DateAndTimeService
 {
+    
+    /// <summary>
+    /// Format string time with zero in minutes and hours ex: 7:5 -> 07:05 
+    /// </summary>
+    /// <param name="time"></param>
+    /// <returns></returns>
+    public static string FormatTimeInString(this string time)
+    {
+        if (time.IsNullOrWhiteSpace() || !time.Contains(':'))
+            return string.Empty;
+        
+        string[] partes = time.Split(':');
+        string formatedTime = partes[0].PadLeft(2, '0');
+        string formatedMinutes = partes[1].PadLeft(2, '0');
+        string newTime = formatedTime + ":" + formatedMinutes;
+
+        return newTime;
+    }
+    
     /// <summary>
     /// Formated Datetime String
     /// </summary>
@@ -237,6 +256,17 @@ public static class DateAndTimeOperations
         var weekDayEnum = (DayOfWeek)Enum.ToObject(typeof(DayOfWeek), weekDay);
         return cultureInfo.DateTimeFormat.GetDayName(weekDayEnum);
     }
+
+    /// <summary>
+    /// Check if date is weekend
+    /// </summary>
+    /// <param name="date"></param>
+    /// <returns></returns>
+
+    public static bool IsWeekend(this DateTime date)
+    {
+        return date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+    }
 }
 
 /// <summary>
@@ -275,6 +305,37 @@ public class TimeOnlyRangeAttribute : ValidationAttribute
             {
                 return ValidationResult.Success;
             }
+        }
+
+        return new ValidationResult(ErrorMessage);
+    }
+}
+
+/// <summary>
+/// Block if weekend
+/// </summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
+public class BlockIfWeekendAttribute : ValidationAttribute
+{
+    /// <summary>
+    /// Constructor 
+    /// </summary>
+    public BlockIfWeekendAttribute()
+    {
+        ErrorMessage = "The date is can't be weekend.";
+    }
+
+    /// <summary>
+    /// Validation method
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="validationContext"></param>
+    /// <returns></returns>
+    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+    {
+        if (value is DateTime dateTime)
+        {
+            return !dateTime.IsWeekend() ? ValidationResult.Success : new ValidationResult(ErrorMessage);
         }
 
         return new ValidationResult(ErrorMessage);

@@ -9,7 +9,7 @@ namespace UtilService.Util;
 /// <summary>
 /// Class of operations with enum
 /// </summary>
-public static class EnumOperations
+public static class EnumService
 {
     /// <summary>
     /// Converts the enum to an integer array

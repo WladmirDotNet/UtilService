@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -9,7 +10,7 @@ namespace UtilService.Util;
 /// <summary>
 /// Classe de mátodos de extensão para objetos serem transformados em string formatada
 /// </summary>
-public static class TextOperations
+public static class TextService
 {
     /// <summary>
     /// Set string empty if null
@@ -47,6 +48,19 @@ public static class TextOperations
             return upperCase ? "YES" : "yes";
 
         return upperCase ? "NO" : "no";
+    }
+    
+    /// <summary>
+    /// Converts string to pascal case
+    /// </summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public static string ToPascalCase(this string value)
+    {
+        TextInfo textInfo = CultureInfo.CurrentCulture.TextInfo;
+        string stringLower = textInfo.ToTitleCase(value.ToLower());
+
+        return stringLower;
     }
 
     /// <summary>

@@ -5,7 +5,7 @@ namespace UtilService.Util;
 /// <summary>
 /// Classe for Id
 /// </summary>
-public static class DocumentOperations
+public static class DocumentService
 {
     /// <summary>
     /// Check if CNPJ is valid
@@ -104,6 +104,7 @@ public static class DocumentOperations
             return "";
         }
     }
+
     /// <summary>
     /// Format CrmDocument to seven digits
     /// </summary>

@@ -3,6 +3,7 @@ using System.Collections;
 using System.ComponentModel.DataAnnotations;
 
 namespace UtilService.Util;
+
 /// <summary>
 /// Class to check minimum list itens
 /// </summary>

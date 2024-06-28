@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 
 namespace UtilService.Util;
@@ -6,7 +7,7 @@ namespace UtilService.Util;
 /// <summary>
 /// Class for telephone and email operations
 /// </summary>
-public static class PhoneAndEmailOperations
+public static class PhoneAndEmailService
 {
     /// <summary>
     /// Validates whether a phone number is valid
@@ -15,22 +16,21 @@ public static class PhoneAndEmailOperations
     /// <returns></returns>
     public static bool IsValidPhone(this string phoneNumber)
     {
-        
+
         var cleanedPhoneNumber = Regex.Replace(phoneNumber, @"[^\d]", "");
 
-       
+
         if (cleanedPhoneNumber.Length != 11 && cleanedPhoneNumber.Length != 10)
             return false;
 
-       
-        var ddd = cleanedPhoneNumber.Substring(0, 2);
-        var prefix = cleanedPhoneNumber.Substring(2, cleanedPhoneNumber.Length - 2);
 
-       
+        var ddd = cleanedPhoneNumber.Substring(0, 2);
+
+
         if (!int.TryParse(ddd, out var dddValue) || (dddValue < 11 || dddValue > 99))
             return false;
 
-        
+
         return cleanedPhoneNumber.Length is 10 or 11;
     }
 
@@ -72,4 +72,24 @@ public static class PhoneAndEmailOperations
         return Regex.IsMatch(email, pattern);
     }
 
+}
+    
+/// <inheritdoc />
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter,
+    AllowMultiple = false)]
+public class ValidateEmailAddressAttribute : ValidationAttribute
+{
+    /// <inheritdoc />
+    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+    {
+        if (string.IsNullOrWhiteSpace(value?.ToString()))
+        {
+            return ValidationResult.Success;
+        }
+
+        var emailAttribute = new EmailAddressAttribute();
+        return !emailAttribute.IsValid(value)
+            ? new ValidationResult(ErrorMessage ?? "Invalid e-mail")
+            : ValidationResult.Success;
+    }
 }

@@ -6,7 +6,7 @@ namespace UtilService.Util;
 /// <summary>
 /// Cladd for images
 /// </summary>
-public static class ImageOperation
+public static class ImageService
 {
     /// <summary>
     /// Tag to add prefix data:image/png;base64, em imágens
@@ -35,7 +35,7 @@ public static class ImageOperation
             return false;
         }
     }
-
+        
     private static bool IsImageFromByte(byte[] bytes)
     {
         string jpgHeader = "FFD8FFE0";

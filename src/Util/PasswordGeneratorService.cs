@@ -6,7 +6,7 @@ namespace UtilService.Util;
 /// <summary>
 /// Classe focada em geração de senhas
 /// </summary>
-public static class GeradorSenhas
+public static class PasswordGeneratorService
 {
     /// <summary>
     /// Método focado em geração de senhas
