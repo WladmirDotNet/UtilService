@@ -349,7 +349,8 @@ public class TimeGreaterThanAttribute : ValidationAttribute
 {
     private readonly string _startTimePropertyName;
     
-    private const string NullErrorMessage = "The start time is null.";
+    private const string NullStartTimeErrorMessage = "The start time is null.";
+    private const string NullEndTimeErrorMessage = "The start time is null.";
 
     /// <summary>
     /// Constructor
@@ -369,13 +370,12 @@ public class TimeGreaterThanAttribute : ValidationAttribute
     /// <returns></returns>
     protected override ValidationResult IsValid(object value, ValidationContext validationContext)
     {
-        if(value is null)
-            return new ValidationResult(NullErrorMessage);
-            
-        var endTime = (TimeOnly) value;
+        if(value is not TimeOnly endTime)
+            return new ValidationResult(NullEndTimeErrorMessage);
+        
         var startTimeProperty = validationContext.ObjectType.GetProperty(_startTimePropertyName);
         
-        if (startTimeProperty == null)
+        if (startTimeProperty is null)
             return new ValidationResult($"Property {_startTimePropertyName} not found.");
 
         var startTime = (TimeOnly?) startTimeProperty.GetValue(validationContext.ObjectInstance);
@@ -383,6 +383,6 @@ public class TimeGreaterThanAttribute : ValidationAttribute
         if(startTime is null)
             return new ValidationResult($"Property {_startTimePropertyName} is null.");
         
-        return endTime <= startTime ? new ValidationResult(ErrorMessage) : ValidationResult.Success;
+        return endTime < startTime ? new ValidationResult(ErrorMessage) : ValidationResult.Success;
     }
 }
