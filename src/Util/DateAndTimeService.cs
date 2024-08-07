@@ -341,3 +341,48 @@ public class BlockIfWeekendAttribute : ValidationAttribute
         return new ValidationResult(ErrorMessage);
     }
 }
+
+/// <summary>
+/// Datannotation for validate TimeOnly is greater than other TimeOnly  
+/// </summary>
+public class TimeGreaterThanAttribute : ValidationAttribute
+{
+    private readonly string _startTimePropertyName;
+    
+    private const string NullErrorMessage = "The start time is null.";
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="startTimePropertyName"></param>
+    public TimeGreaterThanAttribute(string startTimePropertyName)
+    {
+        _startTimePropertyName = startTimePropertyName;
+        ErrorMessage = $"The field {startTimePropertyName} is greater than this field.";
+    }
+
+    /// <summary>
+    /// Validation method
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="validationContext"></param>
+    /// <returns></returns>
+    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+    {
+        if(value is null)
+            return new ValidationResult(NullErrorMessage);
+            
+        var endTime = (TimeOnly) value;
+        var startTimeProperty = validationContext.ObjectType.GetProperty(_startTimePropertyName);
+        
+        if (startTimeProperty == null)
+            return new ValidationResult($"Property {_startTimePropertyName} not found.");
+
+        var startTime = (TimeOnly?) startTimeProperty.GetValue(validationContext.ObjectInstance);
+
+        if(startTime is null)
+            return new ValidationResult($"Property {_startTimePropertyName} is null.");
+        
+        return endTime <= startTime ? new ValidationResult(ErrorMessage) : ValidationResult.Success;
+    }
+}
