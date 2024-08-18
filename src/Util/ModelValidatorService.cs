@@ -22,7 +22,7 @@ public static class ValidationExtensions
         var results = new System.Collections.Generic.List<ValidationResult>();
         if (!Validator.TryValidateObject(obj, context, results, true)) 
         {
-            throw new Exception(results.FirstOrDefault()?.ErrorMessage);
+            throw new ApplicationException(results.FirstOrDefault()?.ErrorMessage);
         }            
     }
 }
