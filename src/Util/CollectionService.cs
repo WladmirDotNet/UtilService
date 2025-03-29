@@ -1,8 +1,27 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace UtilService.Util;
+
+/// <summary>
+/// Collection service
+/// </summary>
+public static class CollectionService
+{
+    /// <summary>
+    /// Convert IEnumerable to ObservableCollection
+    /// </summary>
+    /// <param name="source"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public static ObservableCollection<T> ToObservableCollection<T>(this List<T> source) where T : class
+    {
+        return new ObservableCollection<T>(source);
+    }
+}
 
 /// <summary>
 /// Class to check minimum list itens
