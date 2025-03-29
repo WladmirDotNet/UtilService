@@ -10,6 +10,16 @@ namespace UtilService.Util;
 public static class PhoneAndEmailService
 {
     /// <summary>
+    /// Converts a phone number to E.164 format
+    /// </summary>
+    /// <param name="phone"></param>
+    /// <returns></returns>
+    public static string ToE164Format(this string phone)
+    {
+        return phone.IsNullOrWhiteSpace() ? null : $"+{phone.NumbersOnly()}";
+    }
+    
+    /// <summary>
     /// Validates whether a phone number is valid
     /// </summary>
     /// <param name="phoneNumber"></param>

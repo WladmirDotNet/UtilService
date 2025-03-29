@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace UtilService.Util;
@@ -30,5 +31,24 @@ public static class StringGeneratorService
         var random = new Random();
         var result = new string(Enumerable.Repeat(chars, tamanho).Select(s => s[random.Next(s.Length)]).ToArray());
         return result;
+    }
+    
+    /// <summary>
+    /// Generate a verification code
+    /// </summary>
+    /// <param name="segmentCount"></param>
+    /// <param name="lettersPerSegment"></param>
+    /// <returns></returns>
+    public static string GenerateVerificationCode(int segmentCount, int lettersPerSegment)
+    {
+        var segments = new List<string>();
+
+        for (int i = 0; i < segmentCount; i++)
+        {
+            var segment = Generate(lettersPerSegment, false, false).ToUpper();
+            segments.Add(segment);
+        }
+
+        return string.Join("-", segments);
     }
 }
