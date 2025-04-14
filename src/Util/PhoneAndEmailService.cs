@@ -20,6 +20,16 @@ public static class PhoneAndEmailService
     }
     
     /// <summary>
+    /// Converts a phone number to WhatsApp contact format
+    /// </summary>
+    /// <param name="phone"></param>
+    /// <returns></returns>
+    public static string ToWhatsappContact(this string phone)
+    {
+        return phone.IsNullOrWhiteSpace() ? null : $"{phone.NumbersOnly()}@s.whatsapp.net";
+    }
+    
+    /// <summary>
     /// Validates whether a phone number is valid
     /// </summary>
     /// <param name="phoneNumber"></param>
