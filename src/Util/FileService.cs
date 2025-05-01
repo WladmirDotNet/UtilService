@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace UtilService.Util;
@@ -68,6 +70,46 @@ public static class FileService
             return true;
 
         return false;
+    }
+    
+    /// <summary>
+    /// Checks if the file has a valid extension
+    /// </summary>
+    public class FileExtensionAttribute : ValidationAttribute
+    {
+        private readonly string[] _allowedExtensions;
+
+        /// <inheritdoc />
+        public FileExtensionAttribute(string[] allowedExtensions)
+        {
+            _allowedExtensions = allowedExtensions;
+            ErrorMessage = $"Extensões permitidas: {string.Join(", ", _allowedExtensions)}";
+        }
+
+        /// <summary>
+        /// Checks if the file has a valid extension
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="validationContext"></param>
+        /// <returns></returns>
+        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+        {
+            if (value == null) return ValidationResult.Success;
+
+            var fileName = value.ToString();
+
+            if (string.IsNullOrEmpty(fileName))
+                return ValidationResult.Success;
+
+            var extension = Path.GetExtension(fileName)?.ToLower();
+
+            if (!_allowedExtensions.Contains(extension))
+            {
+                return new ValidationResult(ErrorMessage);
+            }
+
+            return ValidationResult.Success;
+        }
     }
 
 }

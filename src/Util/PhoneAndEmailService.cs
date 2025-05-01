@@ -26,6 +26,9 @@ public static class PhoneAndEmailService
     /// <returns></returns>
     public static string ToWhatsappContact(this string phone)
     {
+        if(phone.Length > 13)
+            phone = phone.Substring(2, 11);
+        
         return phone.IsNullOrWhiteSpace() ? null : $"{phone.NumbersOnly()}@s.whatsapp.net";
     }
     
