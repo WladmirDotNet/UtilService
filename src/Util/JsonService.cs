@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace UtilService.Util;
@@ -74,6 +76,31 @@ public static class JsonService
         return resultNodes;
     }
 
+    /// <summary>
+    /// Convert object to json
+    /// </summary>
+    /// <param name="sourceData"></param>
+    /// <returns></returns>
+    public static string ToJson(this object sourceData)
+    {
+        return JsonSerializer.Serialize(sourceData);
+    }
+    
+    /// <summary>
+    /// Convert json to object
+    /// </summary>
+    /// <param name="json"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
+    public static T JsonToObject<T>(string json)
+    {
+        if (json.IsNullOrWhiteSpace())
+            throw new ArgumentException("JSON string is null or empty.", nameof(json));
+
+        return JsonSerializer.Deserialize<T>(json);
+    }
+    
     private static void FindAllByKeyName(JsonNode node, string keyName, List<JsonNode> resultNodes)
     {
         switch (node)
@@ -103,4 +130,6 @@ public static class JsonService
             }
         }
     }
+    
+    
 }
