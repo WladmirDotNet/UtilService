@@ -93,7 +93,7 @@ public static class JsonService
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
     /// <exception cref="ArgumentException"></exception>
-    public static T JsonToObject<T>(string json)
+    public static T JsonToObject<T>(this string json)
     {
         if (json.IsNullOrWhiteSpace())
             throw new ArgumentException("JSON string is null or empty.", nameof(json));
