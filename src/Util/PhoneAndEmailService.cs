@@ -31,6 +31,13 @@ public static class PhoneAndEmailService
         
         return phone.IsNullOrWhiteSpace() ? null : $"{phone.NumbersOnly()}@s.whatsapp.net";
     }
+
+    /// <summary>
+    /// Converts a WhatsApp contact to a phone number
+    /// </summary>
+    /// <param name="phone"></param>
+    /// <returns></returns>
+    public static string ToPhoneFromWhatsappContact(this string phone) => phone.Replace("@s.whatsapp.net", string.Empty);
     
     /// <summary>
     /// Validates whether a phone number is valid
