@@ -182,10 +182,8 @@ public static class EnumService
         {
             return (TEnum)Enum.ToObject(typeof(TEnum), valorInteiro);
         }
-        else
-        {
-            throw new ArgumentException($"The value {valorInteiro} cant convert to enum {typeof(TEnum).Name}.");
-        }
+
+        throw new ArgumentException($"The value {valorInteiro} cant convert to enum {typeof(TEnum).Name}.");
     }
 
 }

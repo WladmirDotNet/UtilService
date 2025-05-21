@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
+using System.Runtime.InteropServices;
 
 namespace UtilService.Util;
 
@@ -224,13 +225,13 @@ public static class DateAndTimeService
     /// </summary>
     /// <param name="dt"></param>
     /// <returns></returns>
-    public static DateTime ToBrasil(this DateTime dt)
+    public static DateTime ToBrazilTimeZone(this DateTime dt)
     {
-        var brasilTimeZone = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
-        var dateTime = TimeZoneInfo.ConvertTime(dt, brasilTimeZone);
-
-        return dateTime;
+        var brasilTimeZone = GetBrazilTimeZone();
+        return TimeZoneInfo.ConvertTimeFromUtc(dt, brasilTimeZone);
     }
+
+   
 
     /// <summary>
     /// Convert datetime to Brazilian local datetime -3 hours
@@ -267,6 +268,15 @@ public static class DateAndTimeService
     {
         return date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
     }
+    
+    #region Private Methods
+    
+    private static TimeZoneInfo GetBrazilTimeZone()
+    {
+        return TimeZoneInfo.FindSystemTimeZoneById(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "E. South America Standard Time" : "America/Sao_Paulo");
+    }
+    
+    #endregion private Methods
 }
 
 /// <summary>
@@ -349,7 +359,6 @@ public class TimeGreaterThanAttribute : ValidationAttribute
 {
     private readonly string _startTimePropertyName;
     
-    private const string NullStartTimeErrorMessage = "The start time is null.";
     private const string NullEndTimeErrorMessage = "The start time is null.";
 
     /// <summary>
