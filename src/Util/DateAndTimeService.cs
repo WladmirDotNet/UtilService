@@ -231,20 +231,6 @@ public static class DateAndTimeService
         return TimeZoneInfo.ConvertTimeFromUtc(dt, brasilTimeZone);
     }
 
-   
-
-    /// <summary>
-    /// Convert datetime to Brazilian local datetime -3 hours
-    /// </summary>
-    /// <param name="dt"></param>
-    /// <returns></returns>
-    public static DateTime ToBrasilDateTime(this DateTime dt)
-    {
-        var dateTime = dt.AddHours(-3);
-
-        return dateTime;
-    }
-
     /// <summary>
     /// Get week day from int value
     /// </summary>
