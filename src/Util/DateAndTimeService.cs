@@ -71,7 +71,7 @@ public static class DateAndTimeService
     /// </summary>
     /// <param name="value"></param>
     /// <returns></returns>
-    public static bool CanExtactTimeOnly(this string value)
+    public static bool CanExtractTimeOnly(this string value)
     {
         var canConvert = TimeOnly.TryParseExact(value, "MM/dd/yyyy HH:mm:ss", out _);
 
@@ -228,6 +228,10 @@ public static class DateAndTimeService
     public static DateTime ToBrazilTimeZone(this DateTime dt)
     {
         var brasilTimeZone = GetBrazilTimeZone();
+
+        if (dt.Kind != DateTimeKind.Utc)
+            dt = DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+
         return TimeZoneInfo.ConvertTimeFromUtc(dt, brasilTimeZone);
     }
 
@@ -275,7 +279,7 @@ public class TimeOnlyRangeAttribute : ValidationAttribute
     private readonly TimeOnly _maxTime;
 
     /// <summary>
-    /// Contructor
+    /// Constructor
     /// </summary>
     /// <param name="minTime"></param>
     /// <param name="maxTime"></param>
@@ -339,7 +343,7 @@ public class BlockIfWeekendAttribute : ValidationAttribute
 }
 
 /// <summary>
-/// Datannotation for validate TimeOnly is greater than other TimeOnly  
+/// DatAnnotation for validate TimeOnly is greater than other TimeOnly  
 /// </summary>
 public class TimeGreaterThanAttribute : ValidationAttribute
 {
