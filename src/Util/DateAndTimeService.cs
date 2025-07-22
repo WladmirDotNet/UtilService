@@ -67,6 +67,13 @@ public static class DateAndTimeService
     }
 
     /// <summary>
+    /// Extracts a DateTime object from the given string value.
+    /// </summary>
+    /// <param name="value">The string value from which to extract the DateTime.</param>
+    /// <returns>A nullable DateTime object if extraction is successful; otherwise, null.</returns>
+    public static DateTime? ExtractDateTime(this string value) => DateTime.Parse(value, new CultureInfo("pt-BR"));
+
+    /// <summary>
     /// Check if string can be extracted into TimeOnly
     /// </summary>
     /// <param name="value"></param>
