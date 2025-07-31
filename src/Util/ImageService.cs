@@ -46,6 +46,21 @@ public static class ImageService
         return (header == jpgHeader || header == pngHeader || header == gifHeader);
     }
 
+    /// <summary>
+    /// Determines whether the provided byte array represents an image.
+    /// </summary>
+    /// <param name="bytes">The byte array to evaluate.</param>
+    /// <returns>True if the byte array represents a supported image format; otherwise, false.</returns>
+    public static bool IsImage(this byte[] bytes)
+    {
+        string jpgHeader = "FFD8FFE0";
+        string pngHeader = "89504E47";
+        string gifHeader = "47494638";
+        string header = ByteArrayToHexString(bytes.Take(4).ToArray());
+
+        return header == jpgHeader || header == pngHeader || header == gifHeader;
+    }
+
     private static string ByteArrayToHexString(byte[] bytes)
     {
         return string.Concat(bytes.Select(b => b.ToString("X2")));
