@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using UtilService.Util.ApplicationEnum;
 
 namespace UtilService.Util;
 
@@ -257,6 +258,24 @@ public static class DateAndTimeService
     }
 
     /// <summary>
+    /// Formats the time component of a DateTime object into a string based on the specified format.
+    /// </summary>
+    /// <param name="dateTime">The DateTime instance to format.</param>
+    /// <param name="formatTimeType">The format type specifying how the time should be represented.</param>
+    /// <returns>A string representing the formatted time component of the DateTime instance.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if the provided formatTimeType is not a valid value.</exception>
+    public static string ToFormateTime(this DateTime dateTime, FormatTimeType formatTimeType)
+    {
+        return formatTimeType switch
+        {
+            FormatTimeType.Hhmm => dateTime.ToString("HH:mm"),
+            FormatTimeType.Hhmmss => dateTime.ToString("HH:mm:ss"),
+            FormatTimeType.Hhmmssfff => dateTime.ToString("HH:mm:ss.fff"),
+            _ => throw new ArgumentOutOfRangeException(nameof(formatTimeType), formatTimeType, null)
+        };
+    }
+
+    /// <summary>
     /// Check if date is weekend
     /// </summary>
     /// <param name="date"></param>
@@ -356,7 +375,7 @@ public class BlockIfWeekendAttribute : ValidationAttribute
 public class TimeGreaterThanAttribute : ValidationAttribute
 {
     private readonly string _startTimePropertyName;
-    
+
     private const string NullEndTimeErrorMessage = "The start time is null.";
 
     /// <summary>
@@ -377,19 +396,19 @@ public class TimeGreaterThanAttribute : ValidationAttribute
     /// <returns></returns>
     protected override ValidationResult IsValid(object value, ValidationContext validationContext)
     {
-        if(value is not TimeOnly endTime)
+        if (value is not TimeOnly endTime)
             return new ValidationResult(NullEndTimeErrorMessage);
-        
+
         var startTimeProperty = validationContext.ObjectType.GetProperty(_startTimePropertyName);
-        
+
         if (startTimeProperty is null)
             return new ValidationResult($"Property {_startTimePropertyName} not found.");
 
-        var startTime = (TimeOnly?) startTimeProperty.GetValue(validationContext.ObjectInstance);
+        var startTime = (TimeOnly?)startTimeProperty.GetValue(validationContext.ObjectInstance);
 
-        if(startTime is null)
+        if (startTime is null)
             return new ValidationResult($"Property {_startTimePropertyName} is null.");
-        
+
         return endTime < startTime ? new ValidationResult(ErrorMessage) : ValidationResult.Success;
     }
 }
