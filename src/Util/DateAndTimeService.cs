@@ -59,13 +59,37 @@ public static class DateAndTimeService
     {
         try
         {
-            return $"{value.Hours:00}:{value.Minutes:00}:{value.Seconds:00}.{value.Milliseconds:000}";
+            return ToFormatedTimeSpan(value, FormatTimeType.Hhmmssfff);
         }
         catch (Exception)
         {
             return "";
         }
     }
+    
+    /// <summary>
+    /// Format TimeSpan String
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="formatTimeType"></param>
+    /// <returns></returns>
+    public static string ToFormatedTimeSpan(this TimeSpan value, FormatTimeType formatTimeType)
+    {
+        try
+        {
+            return formatTimeType switch
+            {
+                FormatTimeType.Hhmm => $"{value.Hours:00}:{value.Minutes:00}",
+                FormatTimeType.Hhmmss => $"{value.Hours:00}:{value.Minutes:00}:{value.Seconds:00}",
+                FormatTimeType.Hhmmssfff => $"{value.Hours:00}:{value.Minutes:00}:{value.Seconds:00}.{value.Milliseconds:000}",
+                _ => throw new ArgumentOutOfRangeException(nameof(formatTimeType), formatTimeType, null)
+            };
+        }
+        catch (Exception)
+        {
+            return "";
+        }
+    }    
 
     /// <summary>
     /// Attempts to extract a DateTime object from the specified string using the provided culture format.
@@ -284,6 +308,65 @@ public static class DateAndTimeService
     public static bool IsWeekend(this DateTime date)
     {
         return date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+    }
+
+    /// <summary>
+    /// Converts decimal to formatted time string HH:mm (e.g., 0.5 = "00:30", 99.5 = "99:30")
+    /// </summary>
+    /// <param name="decimalValue">Decimal value representing hours with fractions</param>
+    /// <returns>Formatted time string in HH:mm format</returns>
+    public static string ToTimeString(this decimal decimalValue)
+    {
+        if (decimalValue == 0) return "00:00";
+        if (decimalValue < 0) decimalValue = 0;
+        
+        var totalMinutes = (int)(decimalValue * 60);
+        var hours = totalMinutes / 60;
+        var minutes = totalMinutes % 60;
+        
+        return $"{hours:D2}:{minutes:D2}";
+    }
+    
+    /// <summary>
+    /// Parses a time string in HH:mm format into decimal hours
+    /// </summary>
+    /// <param name="timeString">Time string to parse (HH:mm format)</param>
+    /// <returns>Decimal representation of hours, or 0 if parsing fails</returns>
+    public static decimal ToDecimal(string timeString)
+    {
+        if (string.IsNullOrEmpty(timeString))
+            return 0;
+
+        if (TimeSpan.TryParse(timeString, out var time))
+            return (decimal)time.TotalHours;
+
+        return 0;
+    }    
+
+    /// <summary>
+    /// Formats month and year into a localized string using a customizable template
+    /// </summary>
+    /// <param name="month">Month number (1-12)</param>
+    /// <param name="year">Year value</param>
+    /// <param name="template">Template string with placeholders: {m} for month, {y} for year (default: "{m} {y}")</param>
+    /// <param name="culture">Culture code for localization (default: "pt-BR")</param>
+    /// <returns>Formatted month/year string based on template and culture</returns>
+    /// <example>
+    /// FormatMonthYear(1, 2025, "{m} {y}","pt-BR") → "janeiro 2025"
+    /// FormatMonthYear(1, 2025, "{y}/{m}","en-US") → "2025/January"
+    /// FormatMonthYear(1, 2025, "{m}","pt-BR") → "janeiro"
+    /// </example>
+    public static string FormatMonthYear(int month, int year, string template = "{m} {y}", string culture = "pt-BR")
+    {
+        var cultureInfo = new CultureInfo(culture);
+
+        var monthName = cultureInfo.DateTimeFormat.GetMonthName(month);
+
+        var result = template
+            .Replace("{m}", monthName.ToPascalCase())
+            .Replace("{y}", year.ToString());
+
+        return result;
     }
     
     #region Private Methods
