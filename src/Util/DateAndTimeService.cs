@@ -311,21 +311,27 @@ public static class DateAndTimeService
     }
 
     /// <summary>
-    /// Converts decimal to formatted time string HH:mm (e.g., 0.5 = "00:30", 99.5 = "99:30")
+    /// Converts decimal to formatted time string HH:mm (supports negative values, e.g., -1.5 = "-01:30")
     /// </summary>
     /// <param name="decimalValue">Decimal value representing hours with fractions</param>
     /// <returns>Formatted time string in HH:mm format</returns>
     public static string ToTimeString(this decimal decimalValue)
     {
         if (decimalValue == 0) return "00:00";
-        if (decimalValue < 0) decimalValue = 0;
-        
+
+        var isNegative = decimalValue < 0;
+    
+        decimalValue = Math.Abs(decimalValue);
+    
         var totalMinutes = (int)(decimalValue * 60);
         var hours = totalMinutes / 60;
         var minutes = totalMinutes % 60;
-        
-        return $"{hours:D2}:{minutes:D2}";
+    
+        var timeString = $"{hours:D2}:{minutes:D2}";
+
+        return isNegative ? $"-{timeString}" : timeString;
     }
+
     
     /// <summary>
     /// Parses a time string in HH:mm format into decimal hours
