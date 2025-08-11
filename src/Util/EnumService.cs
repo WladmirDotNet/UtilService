@@ -47,6 +47,18 @@ public static class EnumService
         throw new ArgumentException($"No enum value found with the default value: {defaultValue}");
     }
 
+
+    /// <summary>
+    /// Retrieves all values of an enum as a list
+    /// </summary>
+    /// <typeparam name="T">The enum type</typeparam>
+    /// <returns>A list containing all values of the specified enum</returns>
+    public static List<T> GetEnumValues<T>() where T : Enum
+    {
+        return Enum.GetValues(typeof(T)).Cast<T>()
+                                        .ToList();
+    }
+
     /// <summary>
     /// Returns whether enum exists by default value (DefaultValue)
     /// </summary>
