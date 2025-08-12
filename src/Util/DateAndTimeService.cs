@@ -11,6 +11,11 @@ namespace UtilService.Util;
 /// </summary>
 public static class DateAndTimeService
 {
+    #region Constants
+
+    private const string BrazilianTimeZoneId = "America/Sao_Paulo";
+
+    #endregion Constants
     
     /// <summary>
     /// Format string time with zero in minutes and hours ex: 7:5 -> 07:05 
@@ -260,13 +265,47 @@ public static class DateAndTimeService
     /// <returns></returns>
     public static DateTime ToBrazilTimeZone(this DateTime dt)
     {
-        var brasilTimeZone = GetBrazilTimeZone();
+        return ToLocalTimeZone(dt,GetBrazilianTimeZoneId());
+    }
+    
+    /// <summary>
+    /// Convert datetime to local datetime
+    /// </summary>
+    /// <param name="dt"></param>
+    /// <param name="timeZoneId">Time zone ID, default is "America/Sao_Paulo"</param>
+    /// <returns></returns>
+    public static DateTime ToLocalTimeZone(this DateTime dt, string timeZoneId)
+    {
+        var localTimeZone = GetLocalTimeZone(timeZoneId);
 
         if (dt.Kind != DateTimeKind.Utc)
             dt = DateTime.SpecifyKind(dt, DateTimeKind.Utc);
 
-        return TimeZoneInfo.ConvertTimeFromUtc(dt, brasilTimeZone);
+        return TimeZoneInfo.ConvertTimeFromUtc(dt, localTimeZone);
     }
+
+    /// <summary>
+    /// Convert datetime to UTC datetime
+    /// </summary>
+    /// <param name="localDateTime"></param>
+    /// <param name="timeZoneId"></param>
+    /// <returns>UTC DateTime</returns>
+    public static DateTime ToUtcDateTime(this DateTime localDateTime, string timeZoneId)
+    {
+        var offSet = -GetLocalDateTimeOffset(timeZoneId);
+        return localDateTime.AddHours(offSet);
+    }
+
+    /// <summary>
+    /// Convert brazilian datetime to UTC datetime
+    /// </summary>
+    /// <param name="brazilianDateTime"></param>
+    /// <returns>UTC DateTime</returns>
+    public static DateTime ToUtcDateTimeFromBrazilianDateTime(this DateTime brazilianDateTime)
+    {
+        var offSet = -GetBrazilianDateTimeOffset();
+        return brazilianDateTime.AddHours(offSet);
+    }    
 
     /// <summary>
     /// Get week day from int value
@@ -377,10 +416,43 @@ public static class DateAndTimeService
     
     #region Private Methods
     
-    private static TimeZoneInfo GetBrazilTimeZone()
+    /// <summary>
+    /// Get Brazilian local time zone ID based on the operating system
+    /// </summary>
+    /// <returns></returns>
+    private static string GetBrazilianTimeZoneId()
     {
-        return TimeZoneInfo.FindSystemTimeZoneById(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "E. South America Standard Time" : "America/Sao_Paulo");
+        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "E. South America Standard Time" : BrazilianTimeZoneId;
+    }    
+    
+    /// <summary>
+    /// Get local time zone by ID
+    /// </summary>
+    /// <param name="timeZoneId"></param>
+    /// <returns></returns>
+    private static TimeZoneInfo GetLocalTimeZone(string timeZoneId)
+    {
+        return TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
     }
+    
+    /// <summary>
+    /// Get Brazilian local time zone offset 
+    /// </summary>
+    /// <returns>Hours difference between UTC and Brazilian DateTime</returns>
+    private static double GetBrazilianDateTimeOffset()
+    {
+        return GetLocalTimeZone(GetBrazilianTimeZoneId()).BaseUtcOffset.TotalHours;
+    }    
+
+    /// <summary>
+    /// Get local time zone offset in hours
+    /// </summary>
+    /// <param name="timeZoneId"></param>
+    /// <returns>Hours difference between UTC and Local DateTime</returns>
+    private static double GetLocalDateTimeOffset(string timeZoneId)
+    {
+        return GetLocalTimeZone(timeZoneId).BaseUtcOffset.TotalHours;
+    }    
     
     #endregion private Methods
 }
