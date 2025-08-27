@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
@@ -241,6 +242,90 @@ public class NumericOnlyAttribute : ValidationAttribute
         var inputString = value.ToString();
 
         return inputString.IsNumericOnly() ? ValidationResult.Success : new ValidationResult(ErrorMessage ?? "A string deve conter apenas caracteres numéricos.");
+    }
+}
+
+/// <summary>
+/// Validates if a string contains the specified character types (numbers, letters, and/or special characters)
+/// </summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
+public class StringContentValidationAttribute : ValidationAttribute
+{
+    /// <summary>
+    /// Gets or sets whether numbers are allowed in the string
+    /// </summary>
+    public bool AllowNumbers { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets whether letters are allowed in the string
+    /// </summary>
+    public bool AllowLetters { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets the array of allowed special characters
+    /// </summary>
+    public char[] AllowedCharacters { get; set; } = Array.Empty<char>();
+
+    /// <summary>
+    /// Initializes a new instance of the StringContentValidationAttribute class
+    /// </summary>
+    public StringContentValidationAttribute()
+    {
+        ErrorMessage ??= "The string contains invalid characters.";
+    }
+
+    /// <summary>
+    /// Validates the string content based on the specified rules
+    /// </summary>
+    /// <param name="value">The value to validate</param>
+    /// <param name="validationContext">The validation context</param>
+    /// <returns>ValidationResult indicating success or failure</returns>
+    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+    {
+        if (value == null)
+        {
+            return ValidationResult.Success;
+        }
+
+        var inputString = value.ToString();
+
+        if (string.IsNullOrWhiteSpace(inputString))
+        {
+            return ValidationResult.Success;
+        }
+
+        foreach (char c in inputString)
+        {
+            bool isValid = false;
+
+            // Check if character is a letter and letters are allowed
+            if (AllowLetters && char.IsLetter(c))
+            {
+                isValid = true;
+            }
+            // Check if character is a number and numbers are allowed
+            else if (AllowNumbers && char.IsDigit(c))
+            {
+                isValid = true;
+            }
+            // Check if character is in the allowed special characters array
+            else if (AllowedCharacters.Contains(c))
+            {
+                isValid = true;
+            }
+            // Check if character is whitespace (always allowed)
+            else if (char.IsWhiteSpace(c))
+            {
+                isValid = true;
+            }
+
+            if (!isValid)
+            {
+                return new ValidationResult(ErrorMessage ?? "The string contains invalid characters.");
+            }
+        }
+
+        return ValidationResult.Success;
     }
 }
 

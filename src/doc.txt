@@ -201,6 +201,7 @@ O **UtilService** é uma biblioteca de utilitários em C# desenvolvida para **.N
 
 **Data Annotations:**
 - `NumericOnlyAttribute` - Valida se string contém apenas caracteres numéricos
+- `StringContentValidationAttribute` - Valida se string contém tipos específicos de caracteres (números, letras e/ou caracteres especiais permitidos)
 
 ### 2.17 Pager - Modelo de Paginação
 
@@ -239,7 +240,7 @@ O **UtilService** é uma biblioteca de utilitários em C# desenvolvida para **.N
 - Formatação de datas no padrão brasileiro
 
 ### 4.2 Data Annotations Personalizadas
-A biblioteca oferece mais de 15 atributos de validação personalizados para uso com Data Annotations do .NET, facilitando a validação de modelos em APIs e aplicações web.
+A biblioteca oferece mais de 16 atributos de validação personalizados para uso com Data Annotations do .NET, facilitando a validação de modelos em APIs e aplicações web.
 
 ### 4.3 Métodos de Extensão
 Todos os serviços utilizam métodos de extensão, proporcionando uma sintaxe fluente e natural para o desenvolvedor.
@@ -271,6 +272,33 @@ public class Empresa
 {
     [ValidCnpj(AcceptsFormatted = true, ErrorMessage = "CNPJ inválido")]
     public string Cnpj { get; set; }
+}
+```
+
+### Validação de Conteúdo de String
+```csharp
+public class Usuario
+{
+    // Permite apenas letras e números (padrão)
+    [StringContentValidation]
+    public string Nome { get; set; }
+    
+    // Permite apenas letras
+    [StringContentValidation(AllowNumbers = false)]
+    public string SomenteLetras { get; set; }
+    
+    // Permite letras, números e caracteres especiais específicos
+    [StringContentValidation(AllowedCharacters = new char[] { ';', '%', '#', '@' })]
+    public string ComCaracteresEspeciais { get; set; }
+    
+    // Apenas caracteres especiais (sem letras nem números)
+    [StringContentValidation(
+        AllowLetters = false, 
+        AllowNumbers = false, 
+        AllowedCharacters = new char[] { ';', '%', '#' },
+        ErrorMessage = "Only special characters are allowed"
+    )]
+    public string ApenasEspeciais { get; set; }
 }
 ```
 
