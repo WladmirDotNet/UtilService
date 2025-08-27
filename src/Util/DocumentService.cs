@@ -146,7 +146,7 @@ public class ValidCnpjAttribute : ValidationAttribute
     /// If set to true, formatted input is accepted and will be cleaned before validation.
     /// If set to false, only unformatted numeric input is considered valid.
     /// </summary>
-    public bool AcceptFormatting { get; }
+    public bool AcceptsFormatted { get; set; } = false;
 
     /// <summary>
     /// Attribute to validate the format and correctness of a Brazilian CNPJ (Cadastro Nacional da Pessoa Jurídica).
@@ -154,10 +154,9 @@ public class ValidCnpjAttribute : ValidationAttribute
     /// <remarks>
     /// The attribute ensures that a CNPJ follows the expected format and validity rules. It optionally accepts formatted CNPJ values (with dots, slashes, and hyphens).
     /// </remarks>
-    public ValidCnpjAttribute(bool acceptFormatting = true)
+    public ValidCnpjAttribute()
     {
-        AcceptFormatting = acceptFormatting;
-        ErrorMessage = ErrorMessage ?? "Invalid CNPJ.";
+        ErrorMessage ??= "Invalid CNPJ.";
     }
 
     /// <summary>
@@ -180,7 +179,7 @@ public class ValidCnpjAttribute : ValidationAttribute
             return ValidationResult.Success;
         }
      
-        if (!AcceptFormatting)
+        if (!AcceptsFormatted)
         {
             if (!cnpj.IsNumericOnly())
             {

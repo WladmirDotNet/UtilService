@@ -1,0 +1,297 @@
+---
+alwaysApply: true
+---
+Sempre que possível, utilize a Lib UtilService em nosso código.
+Abaixo documentação completa de métodos disponíveis:
+
+# UtilService - Biblioteca de Utilitários C#
+
+## 1. Propósito e Visão Geral da Biblioteca
+
+O **UtilService** é uma biblioteca de utilitários em C# desenvolvida para **.NET 8.0** e **.NET 9.0** que fornece uma ampla coleção de métodos de extensão, validações e serviços auxiliares para desenvolvimento de aplicações. A biblioteca foi projetada para simplificar tarefas comuns como:
+
+- Formatação e validação de documentos brasileiros (CPF, CNPJ, CEP)
+- Manipulação de strings e textos
+- Operações com datas e horários (incluindo fusos horários brasileiros)
+- Validação de dados e modelos
+- Geração de códigos e senhas
+- Manipulação de arquivos e imagens
+- Operações com JSON e enums
+- Validações específicas para e-mail e telefone
+
+## 2. Estrutura da Biblioteca por Serviços
+
+### 2.1 AddressService - Serviços de Endereço
+
+**Métodos Públicos:**
+- `ToFormatedCepString(this string value)` - Formata uma string numérica como CEP brasileiro (formato: 00.000-000)
+- `IsValidCep(this string cep)` - Valida se um CEP possui formato válido (8 dígitos numéricos)
+
+**Data Annotations:**
+- `ValidCepAttribute` - Atributo de validação para propriedades que devem conter CEP válido
+- `ValidUfBrasilAttribute` - Atributo de validação para UF (Unidade Federativa) brasileira válida
+
+### 2.2 ClassAnalizer - Análise e Comparação de Classes
+
+**Métodos Públicos:**
+- `Compare(object itemOriginal, object itemAtual)` - Compara duas instâncias de objetos e retorna as diferenças entre suas propriedades
+- `GetDiferences(List<ClassCompareResult> compare)` - Filtra apenas as propriedades que realmente diferem entre dois objetos
+- `EspecialEqualsToList<T>(IEnumerable<T> list1, IEnumerable<T> list2)` - Compara duas listas verificando se possuem os mesmos elementos (independente da ordem)
+
+**Classes de Modelo:**
+- `ClassCompareResult` - DTO que representa o resultado de uma comparação entre objetos com nome do campo e valores anterior/atual
+
+### 2.3 CollectionService - Serviços de Coleções
+
+**Métodos Públicos:**
+- `ToObservableCollection<T>(this List<T> source)` - Converte uma `List<T>` em `ObservableCollection<T>` para uso em aplicações WPF/MVVM
+
+**Data Annotations:**
+- `MinimumItemsAttribute` - Atributo de validação que verifica se uma coleção possui um número mínimo de itens
+
+### 2.4 DateAndTimeService - Serviços de Data e Hora
+
+**Métodos Públicos:**
+- `FromUtcToTimeZone(this DateTime utcDateTime, BrazilTimeZoneType tz)` - Converte DateTime UTC para fuso horário brasileiro específico
+- `FromTimeZoneToUtc(this DateTime localDateTime, BrazilTimeZoneType tz)` - Converte DateTime de fuso horário brasileiro para UTC
+- `FormatTimeInString(this string time)` - Formata uma string de hora adicionando zeros à esquerda (ex: "7:5" → "07:05")
+- `ToFormatedDateTime(this DateTime value)` - Formata DateTime no padrão brasileiro (dd/MM/yyyy HH:mm:ss)
+- `ToFormatedDateTime(this DateTime? value)` - Versão para DateTime nullable
+- `ToFormatedTimeSpan(this TimeSpan value)` - Formata TimeSpan no formato HH:mm:ss.fff
+- `ToFormatedTimeSpan(this TimeSpan value, FormatTimeType formatTimeType)` - Formata TimeSpan com tipo de formato específico
+- `ExtractDateTime(this string value, string culture = "pt-BR")` - Extrai DateTime de string usando cultura específica
+- `CanExtractTimeOnly(this string value)` - Verifica se uma string pode ser convertida para TimeOnly
+- `ExtractTimeOnly(this string value)` - Extrai TimeOnly nullable de string
+- `ExtractTimeOnlyValue(this string value)` - Extrai TimeOnly de string (lança exceção se falhar)
+- `GetWeekDay(this int weekDay, string culture = "pt-BR")` - Obtém nome do dia da semana por número
+- `ToFormateTime(this DateTime dateTime, FormatTimeType formatTimeType)` - Formata componente de tempo do DateTime
+- `IsWeekend(this DateTime date)` - Verifica se a data é fim de semana
+- `ToTimeString(this decimal decimalValue)` - Converte decimal para string de tempo formatada HH:mm (suporta valores negativos)
+- `ToDecimal(string timeString)` - Converte string de tempo para decimal
+- `FormatMonthYear(int month, int year, string template = "{m} {y}", string culture = "pt-BR")` - Formata mês e ano usando template personalizado
+
+**Enums:**
+- `BrazilTimeZoneType` - Enum para fusos horários brasileiros (Fernando de Noronha, Brasília, Cuiabá, Acre)
+- `FormatTimeType` - Enum para tipos de formatação de tempo (Hhmm, Hhmmss, Hhmmssfff)
+
+**Data Annotations:**
+- `TimeOnlyRangeAttribute` - Valida se TimeOnly está dentro de um intervalo específico
+- `BlockIfWeekendAttribute` - Bloqueia datas que caem em fim de semana
+- `TimeGreaterThanAttribute` - Valida se um TimeOnly é maior que outro campo TimeOnly
+
+### 2.5 DocumentService - Serviços de Documentos
+
+**Métodos Públicos:**
+- `ValidateCnpj(this string cnpj)` - Valida CNPJ brasileiro usando algoritmo oficial
+- `ValidateCpf(this string cpf)` - Valida CPF brasileiro usando algoritmo oficial
+- `ToFormatedCpfCnpjString(this string value)` - Formata string como CPF (000.000.000-00) ou CNPJ (00.000.000/0000-00)
+- `FormatCrmDocument(this string value)` - Formata documento CRM com 7 dígitos (padding com zeros à esquerda)
+
+**Data Annotations:**
+- `ValidCnpjAttribute` - Atributo de validação para CNPJ com opção de aceitar formatação (propriedade AcceptsFormatted)
+
+### 2.6 EnumService - Operações com Enumerações
+
+**Métodos Públicos:**
+- `ToIntArray<T>()` - Converte valores de enum para array de inteiros
+- `GetEnumValueFromDefaultValue<TEnum>(this string defaultValue)` - Obtém valor de enum através do atributo DefaultValue
+- `GetEnumValues<T>()` - Obtém todos os valores de um enum como lista
+- `ExistsEnumValueFromDefaultValue<TEnum>(this string defaultValue)` - Verifica se existe enum com DefaultValue específico
+- `ExistsInEnum<TEnum>(this string value)` - Verifica se string existe como valor no enum
+- `ToEnum<T>(this string value)` - Converte string para enum
+- `LoadDataFromEnum<T>(this IEnumerable<string> lista)` - Carrega coleção com nomes dos valores do enum
+- `LoadDataFromEnumDefaultValue<T>(this IEnumerable<string> lista)` - Carrega coleção com DefaultValues do enum
+- `LoadDataFromEnumDescription<T>(this IEnumerable<string> lista)` - Carrega coleção com descrições do enum
+- `GetDescription(this Enum @enum)` - Obtém descrição do enum (atributo Description)
+- `GetDefaultValue(this Enum @enum)` - Obtém valor padrão do enum (atributo DefaultValue)
+- `GetIntValue(this Enum @enum)` - Obtém valor inteiro do enum
+- `IntToEnum<TEnum>(this int valorInteiro)` - Converte inteiro para enum específico
+
+**Data Annotations:**
+- `EnumDataAnnotations.AllowedEnumValuesAttribute` - Valida se valor do enum está na lista de valores permitidos
+
+### 2.7 FileService - Serviços de Arquivos
+
+**Métodos Públicos:**
+- `OpenToList(string arquivo)` - Abre arquivo de texto e converte cada linha em item de lista (método assíncrono)
+- `HasBom(this MemoryStream memoryStream)` - Verifica se MemoryStream possui BOM (Byte Order Mark)
+
+**Data Annotations:**
+- `FileExtensionAttribute` - Valida se arquivo possui extensão permitida
+
+### 2.8 GuidService - Validação de GUID
+
+**Data Annotations:**
+- `ValidateGuidNullAttribute` - Valida se GUID não é nulo ou vazio (Guid.Empty)
+
+### 2.9 ImageService - Serviços de Imagens
+
+**Constantes:**
+- `PrefixBase64Png` - Prefixo para imagens PNG em Base64
+- `PrefixBase64Jpeg` - Prefixo para imagens JPEG em Base64
+
+**Métodos Públicos:**
+- `IsImage(this string imagemBase64)` - Verifica se string Base64 representa uma imagem válida (JPG, PNG, GIF)
+- `IsImage(this byte[] bytes)` - Verifica se array de bytes representa uma imagem válida
+
+### 2.10 JsonService - Operações com JSON
+
+**Métodos Públicos:**
+- `FindFirstByKeyName(this JsonNode node, string key)` - Busca primeiro nó JSON com nome de chave específico
+- `FindAllByKeyName(this JsonNode rootNode, string keyName)` - Busca todos os nós JSON com nome de chave específico
+- `ToJson(this object sourceData)` - Converte objeto para string JSON
+- `ConvertToObject<T>(this string json)` - Converte string JSON para objeto tipado
+
+### 2.11 ModelValidatorService - Validação de Modelos
+
+**Métodos Públicos:**
+- `CheckIfModelIsValid<T>(this T obj)` - Valida modelo usando Data Annotations e lança exceção se inválido
+
+### 2.12 NumericService - Operações Numéricas
+
+**Métodos Públicos:**
+- `IsInValidRange(this double value, double[] validValues)` - Verifica se valor está dentro do array de valores válidos
+
+**Data Annotations:**
+- `IsInvalidRangeAttribute` - Valida se valor numérico está dentro de range permitido
+
+### 2.13 PasswordGeneratorService - Geração de Senhas
+
+**Métodos Públicos:**
+- `Gerar(int tamanho)` - Gera senha aleatória com caracteres alfanuméricos e especiais
+
+### 2.14 PhoneAndEmailService - Telefone e E-mail
+
+**Métodos Públicos:**
+- `ToE164Format(this string phone)` - Converte telefone para formato E.164 (+5511999999999)
+- `ToWhatsappContact(this string phone)` - Converte telefone para formato WhatsApp (11999999999@s.whatsapp.net)
+- `ToPhoneFromWhatsappContact(this string phone)` - Remove sufixo WhatsApp do contato
+- `IsValidPhone(this string phoneNumber)` - Valida telefone brasileiro (10 ou 11 dígitos com DDD válido)
+- `ToFormatedPhoneString(this string value)` - Formata telefone brasileiro ((11)99999-9999 ou (11)9999-9999)
+- `IsEmailValid(this string email)` - Valida formato de e-mail usando regex
+
+**Data Annotations:**
+- `ValidateEmailAddressAttribute` - Atributo de validação para e-mail usando EmailAddressAttribute nativo
+
+### 2.15 StringGeneratorService - Geração de Strings
+
+**Métodos Públicos:**
+- `Generate(int tamanho, bool incluirNumeros, bool incluirCaracteresEspeciais)` - Gera string aleatória personalizada
+- `GenerateVerificationCode(int segmentCount, int lettersPerSegment)` - Gera código de verificação segmentado (ex: ABC-DEF-GHI)
+
+### 2.16 TextService - Manipulação de Textos
+
+**Métodos Públicos:**
+- `ToStringEmptyIfNull(this object obj)` - Converte objeto para string ou retorna string vazia se nulo
+- `ToSimNao(this bool value, bool upperCase = false)` - Converte bool para "SIM"/"NÃO" em português
+- `ToYesNo(this bool value, bool upperCase = false)` - Converte bool para "YES"/"NO" em inglês
+- `ToPascalCase(this string value)` - Converte string para Pascal Case
+- `TrimStringProperties<T>(this T obj)` - Aplica Trim em todas as propriedades string de um objeto
+- `AsNullIfEmpty(this string value)` - Retorna null se string for vazia
+- `AsNullIfWhiteSpace(this string value)` - Retorna null se string for espaço em branco
+- `IsNullOrWhiteSpace(this string text)` - Verifica se string é nula ou espaço em branco
+- `ToTrimUpper(this string texto)` - Remove espaços e converte para maiúsculas
+- `ToTrimOrEmpty(this string texto)` - Remove espaços ou retorna string vazia
+- `ToTrimLower(this string texto)` - Remove espaços e converte para minúsculas
+- `LettersOnly(this string text)` - Retorna apenas letras da string (incluindo acentos)
+- `LettersAndNumbersOnly(this string text)` - Retorna apenas letras e números (incluindo acentos)
+- `NumbersOnly(this string text)` - Retorna apenas números da string
+- `IsNumericOnly(this string text)` - Verifica se string contém apenas números
+- `Join(this IEnumerable<string> list, char spliter)` - Junta lista de strings com separador
+
+**Data Annotations:**
+- `NumericOnlyAttribute` - Valida se string contém apenas caracteres numéricos
+
+### 2.17 Pager - Modelo de Paginação
+
+**Propriedades Públicas:**
+- `CurrentPage` - Página atual
+- `PageSize` - Tamanho da página
+- `TotalPages` - Total de páginas (calculado automaticamente)
+- `TotalRegistries` - Total de registros na coleção
+
+**Construtor:**
+- `Pager(int currentPage, int pageSize, int totalRegistries)` - Inicializa paginação com cálculo automático do total de páginas
+
+## 3. Enumerações Auxiliares
+
+### 3.1 BrazilTimeZoneType - Fusos Horários Brasileiros
+
+- `AmericaNoronha` - UTC-02:00 Fernando de Noronha Time
+- `AmericaSaoPaulo` - UTC-03:00 Brasília Time (padrão)
+- `AmericaCuiaba` - UTC-04:00 Central Brazilian Standard Time
+- `AmericaRioBranco` - UTC-05:00 Acre Time
+
+### 3.2 FormatTimeType - Tipos de Formatação de Tempo
+
+- `Hhmm` - Formato HH:mm
+- `Hhmmss` - Formato HH:mm:ss
+- `Hhmmssfff` - Formato HH:mm:ss.fff
+
+## 4. Características Especiais da Biblioteca
+
+### 4.1 Foco no Contexto Brasileiro
+- Validação de documentos brasileiros (CPF, CNPJ)
+- Formatação de CEP brasileiro
+- Validação de UF (Estados brasileiros)
+- Validação de telefones com DDD brasileiro
+- Suporte completo aos fusos horários brasileiros
+- Formatação de datas no padrão brasileiro
+
+### 4.2 Data Annotations Personalizadas
+A biblioteca oferece mais de 15 atributos de validação personalizados para uso com Data Annotations do .NET, facilitando a validação de modelos em APIs e aplicações web.
+
+### 4.3 Métodos de Extensão
+Todos os serviços utilizam métodos de extensão, proporcionando uma sintaxe fluente e natural para o desenvolvedor.
+
+### 4.4 Compatibilidade Multi-Target
+Suporta .NET 8.0 e .NET 9.0, garantindo compatibilidade com versões recentes do framework.
+
+### 4.5 Suporte Multiplataforma
+Inclui suporte específico para diferentes sistemas operacionais (Windows, Linux, macOS) especialmente para fusos horários.
+
+## 5. Casos de Uso Típicos
+
+1. **Validação de Formulários**: Use os atributos de validação em DTOs e ViewModels
+2. **Formatação de Dados**: Aplique formatações brasileiras em CPF, CNPJ, CEP e telefones
+3. **Manipulação de Strings**: Limpe, formate e valide textos de entrada
+4. **Comparação de Objetos**: Compare estados de entidades para auditoria
+5. **Geração de Códigos**: Crie senhas e códigos de verificação seguros
+6. **Paginação**: Implemente paginação em listagens e grids
+7. **Validação de Modelos**: Valide objetos completos usando Data Annotations
+8. **Conversão de Fusos Horários**: Trabalhe com diferentes fusos horários brasileiros
+9. **Manipulação de JSON**: Busque e manipule dados JSON de forma eficiente
+10. **Formatação de Tempo**: Formate datas e horários em diversos formatos
+
+## 6. Exemplos de Uso
+
+### Validação de CNPJ com Data Annotation
+```csharp
+public class Empresa
+{
+    [ValidCnpj(AcceptsFormatted = true, ErrorMessage = "CNPJ inválido")]
+    public string Cnpj { get; set; }
+}
+```
+
+### Conversão de Fuso Horário
+```csharp
+var utcDateTime = DateTime.UtcNow;
+var brasiliaTime = utcDateTime.FromUtcToTimeZone(BrazilTimeZoneType.AmericaSaoPaulo);
+```
+
+### Formatação de Telefone
+```csharp
+var telefone = "11999999999";
+var formatado = telefone.ToFormatedPhoneString(); // (11)99999-9999
+var whatsapp = telefone.ToWhatsappContact(); // 11999999999@s.whatsapp.net
+```
+
+### Manipulação de Texto
+```csharp
+var texto = "  João da Silva  ";
+var limpo = texto.ToTrimUpper(); // "JOÃO DA SILVA"
+var somenteLetras = texto.LettersOnly(); // "João da Silva"
+```
+
+Esta biblioteca é especialmente útil para aplicações brasileiras que precisam lidar com documentos, endereços, fusos horários e validações específicas do país, oferecendo uma solução robusta e pronta para uso.
