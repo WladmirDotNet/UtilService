@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace UtilService.Util;
 
@@ -127,3 +128,70 @@ public static class DocumentService
         }
     }
 }
+
+#region DataAnnotations
+
+/// <summary>
+/// Provides validation for Brazilian CNPJ numbers.
+/// </summary>
+/// <remarks>
+/// This attribute is used to validate properties, fields, or parameters to ensure their values are valid CNPJ numbers.
+/// Optionally allows formatting delimited by periods, hyphens, and slashes.
+/// </remarks>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
+public class ValidCnpjAttribute : ValidationAttribute
+{
+    /// <summary>
+    /// Gets a value indicating whether the CNPJ validation will accept formatted input (e.g., with dots, slashes, and dashes).
+    /// If set to true, formatted input is accepted and will be cleaned before validation.
+    /// If set to false, only unformatted numeric input is considered valid.
+    /// </summary>
+    public bool AcceptFormatting { get; }
+
+    /// <summary>
+    /// Attribute to validate the format and correctness of a Brazilian CNPJ (Cadastro Nacional da Pessoa Jurídica).
+    /// </summary>
+    /// <remarks>
+    /// The attribute ensures that a CNPJ follows the expected format and validity rules. It optionally accepts formatted CNPJ values (with dots, slashes, and hyphens).
+    /// </remarks>
+    public ValidCnpjAttribute(bool acceptFormatting = true)
+    {
+        AcceptFormatting = acceptFormatting;
+        ErrorMessage = ErrorMessage ?? "Invalid CNPJ.";
+    }
+
+    /// <summary>
+    /// Determines whether the input is valid.
+    /// </summary>
+    /// <param name="value">The value to be validated.</param>
+    /// <param name="validationContext"></param>
+    /// <returns>Returns true if the input is valid; otherwise, false.</returns>
+    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+    {
+        if (value == null)
+        {
+            return ValidationResult.Success;
+        }
+
+        var cnpj = value.ToString();
+
+        if (cnpj.IsNullOrWhiteSpace())
+        {
+            return ValidationResult.Success;
+        }
+     
+        if (!AcceptFormatting)
+        {
+            if (!cnpj.IsNumericOnly())
+            {
+                return new ValidationResult(ErrorMessage ?? "CNPJ must be numbers only.");
+            }
+        }
+    
+        var isValid = cnpj.ValidateCnpj();
+
+        return isValid ? ValidationResult.Success : new ValidationResult(ErrorMessage ?? "Invalid CNPJ.");
+    }
+}
+
+#endregion DataAnnotations
