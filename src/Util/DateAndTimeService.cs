@@ -7,15 +7,59 @@ using UtilService.Util.ApplicationEnum;
 namespace UtilService.Util;
 
 /// <summary>
-/// Classe to time
+/// Provides a collection of extension methods for working with dates and times,
+/// including formatting, conversion between time zones, and parsing operations.
+/// Special focus is given to Brazilian time zones and formats.
 /// </summary>
 public static class DateAndTimeService
 {
-    #region Constants
+    /// <summary>
+    /// Converts this DateTime (in UTC) to the specified Brazilian time zone.
+    /// </summary>
+    /// <param name="utcDateTime">The UTC DateTime to be converted.</param>
+    /// <param name="tz">The Brazilian time zone enum value.</param>
+    /// <returns>A DateTime in the target local time zone.</returns>
+    public static DateTime FromUtcToTimeZone(this DateTime utcDateTime, BrazilTimeZoneType tz)
+    {
+        if (utcDateTime.Kind != DateTimeKind.Utc)
+            throw new ArgumentException("The provided DateTime must be in UTC.", nameof(utcDateTime));
 
-    private const string BrazilianTimeZoneId = "America/Sao_Paulo";
+        var timeZoneId = tz.GetTimeZoneIdForCurrentOS();
+        var timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
 
-    #endregion Constants
+        return TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, timeZone);
+    }
+
+    /// <summary>
+    /// Converts this DateTime (in a specific Brazilian time zone) to UTC.
+    /// </summary>
+    /// <param name="localDateTime">The local DateTime to be converted.</param>
+    /// <param name="tz">The Brazilian time zone enum value.</param>
+    /// <returns>A DateTime in UTC.</returns>
+    public static DateTime FromTimeZoneToUtc(this DateTime localDateTime, BrazilTimeZoneType tz)
+    {
+        var timeZoneId = tz.GetTimeZoneIdForCurrentOS();
+        var timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+
+        return TimeZoneInfo.ConvertTimeToUtc(localDateTime, timeZone);
+    }
+
+    /// <summary>
+    /// Gets the correct time zone ID depending on the OS.
+    /// Linux/macOS - DefaultValueAttribute (IANA ID)
+    /// Windows - DescriptionAttribute (Windows ID)
+    /// </summary>
+    private static string GetTimeZoneIdForCurrentOS(this BrazilTimeZoneType tz)
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            var desc = tz.GetDescription();
+            return desc ?? throw new InvalidOperationException("Windows timezone ID not defined.");
+        }
+
+        var def = tz.GetDefaultValue();
+        return def ?? throw new InvalidOperationException("IANA timezone ID not defined.");
+    }
     
     /// <summary>
     /// Format string time with zero in minutes and hours ex: 7:5 -> 07:05 
@@ -259,55 +303,6 @@ public static class DateAndTimeService
     }
 
     /// <summary>
-    /// Convert datetime to Brazilian local datetime
-    /// </summary>
-    /// <param name="dt"></param>
-    /// <returns></returns>
-    public static DateTime ToBrazilTimeZone(this DateTime dt)
-    {
-        return ToLocalTimeZone(dt,GetBrazilianTimeZoneId());
-    }
-    
-    /// <summary>
-    /// Convert datetime to local datetime
-    /// </summary>
-    /// <param name="dt"></param>
-    /// <param name="timeZoneId">Time zone ID, default is "America/Sao_Paulo"</param>
-    /// <returns></returns>
-    public static DateTime ToLocalTimeZone(this DateTime dt, string timeZoneId)
-    {
-        var localTimeZone = GetLocalTimeZone(timeZoneId);
-
-        if (dt.Kind != DateTimeKind.Utc)
-            dt = DateTime.SpecifyKind(dt, DateTimeKind.Utc);
-
-        return TimeZoneInfo.ConvertTimeFromUtc(dt, localTimeZone);
-    }
-
-    /// <summary>
-    /// Convert datetime to UTC datetime
-    /// </summary>
-    /// <param name="localDateTime"></param>
-    /// <param name="timeZoneId"></param>
-    /// <returns>UTC DateTime</returns>
-    public static DateTime ToUtcDateTime(this DateTime localDateTime, string timeZoneId)
-    {
-        var offSet = -GetLocalDateTimeOffset(timeZoneId);
-        return localDateTime.AddHours(offSet);
-    }
-
-    /// <summary>
-    /// Convert brazilian datetime to UTC datetime
-    /// </summary>
-    /// <param name="brazilianDateTime"></param>
-    /// <returns>UTC DateTime</returns>
-    public static DateTime ToUtcDateTimeFromBrazilianDateTime(this DateTime brazilianDateTime)
-    {
-        var offSet = -GetBrazilianDateTimeOffset();
-        return brazilianDateTime.AddHours(offSet);
-    }    
-
-    /// <summary>
     /// Get week day from int value
     /// </summary>
     /// <param name="weekDay"></param>
@@ -373,7 +368,7 @@ public static class DateAndTimeService
 
     
     /// <summary>
-    /// Parses a time string in HH:mm format into decimal hours
+    /// Parses a time string in HH:mm format into decimal hours.
     /// </summary>
     /// <param name="timeString">Time string to parse (HH:mm format)</param>
     /// <returns>Decimal representation of hours, or 0 if parsing fails</returns>
@@ -407,54 +402,11 @@ public static class DateAndTimeService
 
         var monthName = cultureInfo.DateTimeFormat.GetMonthName(month);
 
-        var result = template
-            .Replace("{m}", monthName.ToPascalCase())
-            .Replace("{y}", year.ToString());
+        var result = template.Replace("{m}", monthName.ToPascalCase())
+                             .Replace("{y}", year.ToString());
 
         return result;
     }
-    
-    #region Private Methods
-    
-    /// <summary>
-    /// Get Brazilian local time zone ID based on the operating system
-    /// </summary>
-    /// <returns></returns>
-    private static string GetBrazilianTimeZoneId()
-    {
-        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "E. South America Standard Time" : BrazilianTimeZoneId;
-    }    
-    
-    /// <summary>
-    /// Get local time zone by ID
-    /// </summary>
-    /// <param name="timeZoneId"></param>
-    /// <returns></returns>
-    private static TimeZoneInfo GetLocalTimeZone(string timeZoneId)
-    {
-        return TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
-    }
-    
-    /// <summary>
-    /// Get Brazilian local time zone offset 
-    /// </summary>
-    /// <returns>Hours difference between UTC and Brazilian DateTime</returns>
-    private static double GetBrazilianDateTimeOffset()
-    {
-        return GetLocalTimeZone(GetBrazilianTimeZoneId()).BaseUtcOffset.TotalHours;
-    }    
-
-    /// <summary>
-    /// Get local time zone offset in hours
-    /// </summary>
-    /// <param name="timeZoneId"></param>
-    /// <returns>Hours difference between UTC and Local DateTime</returns>
-    private static double GetLocalDateTimeOffset(string timeZoneId)
-    {
-        return GetLocalTimeZone(timeZoneId).BaseUtcOffset.TotalHours;
-    }    
-    
-    #endregion private Methods
 }
 
 /// <summary>
