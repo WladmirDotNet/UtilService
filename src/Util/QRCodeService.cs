@@ -21,9 +21,9 @@ public static class QrCodeService
     private const long MaxImageSizeBytes = 1 * 1024 * 1024;
     
     /// <summary>
-    /// Maximum allowed image dimensions (600x600 pixels)
+    /// Maximum allowed image dimensions (1920 1920)
     /// </summary>
-    private const int MaxImageDimension = 600;
+    private const int MaxImageDimension = 1920;
     
     /// <summary>
     /// Maximum allowed QR Code text length
