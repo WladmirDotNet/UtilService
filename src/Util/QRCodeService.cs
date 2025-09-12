@@ -28,7 +28,7 @@ public static class QrCodeService
     /// <summary>
     /// Maximum allowed QR Code text length
     /// </summary>
-    private const int MaxQrTextLength = 1000;
+    private const int MaxQrTextLength = 5000;
     
     /// <summary>
     /// Maximum number of QR Codes to process from a single image
