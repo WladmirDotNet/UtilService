@@ -18,7 +18,7 @@ public static class QrCodeService
     /// <summary>
     /// Maximum allowed image size in bytes (1MB)
     /// </summary>
-    private const long MaxImageSizeBytes = 1 * 1024 * 1024;
+    private const long MaxImageSizeBytes = 10 * 1024 * 1024;
     
     /// <summary>
     /// Maximum allowed image dimensions (1920 1920)
