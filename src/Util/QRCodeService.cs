@@ -99,7 +99,7 @@ public static class QrCodeService
     /// </summary>
     /// <param name="image">ImageSharp image to scan</param>
     /// <returns>Array of QR detection results</returns>
-    public static QrDetectionResult[] DetectQrCodesWithImageSharp(SixLabors.ImageSharp.Image<Rgba32> image)
+    public static QrDetectionModel[] DetectQrCodesWithImageSharp(SixLabors.ImageSharp.Image<Rgba32> image)
     {
         if (image == null)
             throw new ArgumentNullException(nameof(image));
@@ -134,15 +134,15 @@ public static class QrCodeService
             var results = reader.decodeMultiple(binaryBitmap, hints);
 
             if (results == null || results.Length == 0)
-                return Array.Empty<QrDetectionResult>();
+                return Array.Empty<QrDetectionModel>();
 
             var maxResults = Math.Min(results.Length, MaxQrCodesPerImage);
-            var output = new QrDetectionResult[maxResults];
+            var output = new QrDetectionModel[maxResults];
             
             for (int i = 0; i < maxResults; i++)
             {
                 var sanitizedText = SanitizeQrCodeText(results[i].Text);
-                output[i] = new QrDetectionResult
+                output[i] = new QrDetectionModel
                 {
                     Text = sanitizedText,
                     CornerPoints = results[i].ResultPoints

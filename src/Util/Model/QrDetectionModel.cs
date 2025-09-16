@@ -5,7 +5,7 @@ namespace UtilService.Util.Model;
 /// <summary>
 /// QR Code detection result with text and position points
 /// </summary>
-public class QrDetectionResult
+public class QrDetectionModel
 {
     /// <summary>
     /// Text content of the detected QR Code
