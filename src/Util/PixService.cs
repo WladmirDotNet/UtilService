@@ -27,6 +27,19 @@ public static partial class PixService
     }
 
     /// <summary>
+    /// Generates a Base64 string (PNG) for the QR code representing the specified EMV code
+    /// </summary>
+    /// <param name="emvCode">The EMV code to be encoded in the QR code</param>
+    /// <param name="validationRequirement">Optional validation requirements for PIX operations</param>
+    /// <returns>Base64 string of the PNG QR code image (without data URL prefix)</returns>
+    public static async Task<string> GeneratePixQrCodeImageBase64(string emvCode, PixValidationRequirementModel validationRequirement = null)
+    {
+        using var imageStream = await GeneratePixQrCodePngImageStream(emvCode, validationRequirement);
+        var bytes = imageStream.ToArray();
+        return Convert.ToBase64String(bytes);
+    }
+
+    /// <summary>
     /// Validates the EMV code format and content
     /// </summary>
     /// <param name="pixQrCodePngImageStream"></param>
