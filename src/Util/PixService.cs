@@ -62,6 +62,36 @@ public static partial class PixService
     }
 
     /// <summary>
+    /// Validates a PIX QR Code image provided as a Base64 string
+    /// </summary>
+    /// <param name="pixQrCodeImageBase64">Base64 string of the QR code image (with or without data URL prefix)</param>
+    /// <param name="validationRequirement">Optional validation requirements for PIX operations</param>
+    /// <exception cref="ArgumentException">Thrown when input is invalid or QR Code cannot be validated</exception>
+    public static async Task ValidatePixQrCodeImageBase64(string pixQrCodeImageBase64, PixValidationRequirementModel validationRequirement = null)
+    {
+        if (string.IsNullOrWhiteSpace(pixQrCodeImageBase64))
+            throw new ArgumentException("Image base64 is missing or empty");
+
+        var base64 = pixQrCodeImageBase64.Trim();
+        var commaIndex = base64.IndexOf(',');
+        if (commaIndex >= 0 && base64.Substring(0, commaIndex).Contains("base64", StringComparison.OrdinalIgnoreCase))
+            base64 = base64[(commaIndex + 1)..];
+
+        byte[] bytes;
+        try
+        {
+            bytes = Convert.FromBase64String(base64);
+        }
+        catch (FormatException ex)
+        {
+            throw new ArgumentException("Invalid base64 image string", nameof(pixQrCodeImageBase64), ex);
+        }
+
+        using var ms = new MemoryStream(bytes, writable: false);
+        await ValidatePixQrCodePngImageStream(ms, validationRequirement);
+    }
+
+    /// <summary>
     /// Validates the EMV code format and content
     /// </summary>
     /// <param name="emvCode">The EMV code to validate</param>
