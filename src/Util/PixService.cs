@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using UtilService.Util.Model;
 
@@ -9,7 +11,7 @@ namespace UtilService.Util;
 /// <summary>
 /// Service class for PIX (Brazilian instant payment system) operations and validations
 /// </summary>
-public static class PixService
+public static partial class PixService
 {
     /// <summary>
     /// Generates a PNG image stream containing a QR code for the specified EMV code
@@ -23,7 +25,29 @@ public static class PixService
         
         return emvCode.GenerateQrCodePngImageStream();
     }
-    
+
+    /// <summary>
+    /// Validates the EMV code format and content
+    /// </summary>
+    /// <param name="pixQrCodePngImageStream"></param>
+    /// <param name="validationRequirement"></param>
+    /// <exception cref="ArgumentException">Thrown when EMV code is invalid</exception>
+    public static async Task ValidatePixQrCodePngImageStream(MemoryStream pixQrCodePngImageStream, PixValidationRequirementModel validationRequirement = null)
+    {
+        if(pixQrCodePngImageStream==null)
+            throw new ArgumentException("Image memory stream is missing or empty");
+            
+        var qrCodeStrings = pixQrCodePngImageStream.ReadQrCodesFromImage();
+        if (qrCodeStrings.Any())
+        {
+            await ValidatePixEmvCode(qrCodeStrings.FirstOrDefault(),validationRequirement);            
+        }
+        else
+        {
+            throw new ArgumentException("QR Code not found.");
+        }
+    }
+
     /// <summary>
     /// Validates the EMV code format and content
     /// </summary>
@@ -94,16 +118,16 @@ public static class PixService
             {
                 var pixUrlInfo = ValidatePixDomainInEmv(emvCode, validationRequirement);
                 
-                if (pixUrlInfo != null)
+                if (pixUrlInfo.Result != null)
                 {
-                    var decodeResult = PixJwtValidattionService.DecodeJwtToken(pixUrlInfo.JwtToken);
+                    var decodeResult = PixJwtValidattionService.DecodeJwtToken(pixUrlInfo.Result.JwtToken);
                     
                     if (!decodeResult.IsSuccess)
                     {
                         throw new ArgumentException($"JWT decode failed: {decodeResult.ErrorMessage}");
                     }
 
-                    if (decodeResult?.Token != null)
+                    if (decodeResult.Token != null)
                     {
                         var pixKeyValidation = PixJwtValidattionService.ValidatePixKey(decodeResult.Token.Payload,validationRequirement.PixKey);
                         
@@ -119,6 +143,28 @@ public static class PixService
                             throw new ArgumentException($"Public key URL extraction failed: {publicKeyUrlResult.ErrorMessage}");                            
                         }
 
+                        if (!string.IsNullOrWhiteSpace(validationRequirement.JwtPublicKeyDomain))
+                        {
+                            var rawUrl = publicKeyUrlResult.Url ?? string.Empty;
+                            var urlToParse = rawUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? rawUrl : $"https://{rawUrl}";
+                            try
+                            {
+                                var uri = new Uri(urlToParse);
+                                var actualHost = uri.Host.ToLowerInvariant();
+                                var expectedDomain = validationRequirement.JwtPublicKeyDomain.ToLowerInvariant();
+
+                                var matches = actualHost.Equals(expectedDomain) || actualHost.EndsWith($".{expectedDomain}");
+                                if (!matches)
+                                {
+                                    throw new ArgumentException($"Public key URL domain mismatch. Expected '{expectedDomain}', got '{actualHost}'. URL: '{rawUrl}'");
+                                }
+                            }
+                            catch (UriFormatException)
+                            {
+                                throw new ArgumentException($"Invalid public key URL format: '{rawUrl}'");
+                            }
+                        }
+
                         var kid = decodeResult.Header.Kid ?? "";
 
                         var publicKeyResult = await PixJwtValidattionService.FetchPublicKeyAsync(publicKeyUrlResult.Url, kid);
@@ -128,7 +174,7 @@ public static class PixService
                             throw new ArgumentException($"Public key fetch failed: {publicKeyResult.ErrorMessage}");
                         }                      
 
-                        var signatureValidationResult = PixJwtValidattionService.ValidateJwtSignature(pixUrlInfo.JwtToken, publicKeyResult.PublicKey);
+                        var signatureValidationResult = PixJwtValidattionService.ValidateJwtSignature(pixUrlInfo.Result.JwtToken, publicKeyResult.PublicKey);
                         
                         if (!signatureValidationResult.IsValid)
                         {
@@ -153,7 +199,7 @@ public static class PixService
     /// <param name="validationRequirement">Optional validation requirements containing expected domain</param>
     /// <returns>PixUrlInfo containing the complete URL and extracted JWT token</returns>
     /// <exception cref="ArgumentException">Thrown when PIX domain validation fails</exception>
-    private static PixUrlInfoModel ValidatePixDomainInEmv(string emvCode, PixValidationRequirementModel validationRequirement = null)
+    private static async Task<PixUrlInfoModel> ValidatePixDomainInEmv(string emvCode, PixValidationRequirementModel validationRequirement = null)
     {
         var field26Match = System.Text.RegularExpressions.Regex.Match(emvCode, @"26(\d{2})(.+?)(?=52\d{2}|$)");
         
@@ -207,53 +253,17 @@ public static class PixService
             throw new ArgumentException($"PIX URL '{extractedUrl}' contains invalid characters");
         }
 
-        var jwtToken = ExtractJwtTokenFromPixUrl(extractedUrl);
+        var jwtFetchResult = await PixJwtValidattionService.FetchJwtTokenAsync(extractedUrl);
+        if (string.IsNullOrEmpty(jwtFetchResult))
+        {
+            throw new ArgumentException($"JWT fetch failed");            
+        }
         
         return new PixUrlInfoModel
         {
             Url = extractedUrl,
-            JwtToken = jwtToken
+            JwtToken = jwtFetchResult
         };
-    }
-
-    /// <summary>
-    /// Extracts JWT token from PIX URL
-    /// </summary>
-    /// <param name="pixUrl">The PIX URL containing the JWT token</param>
-    /// <returns>The JWT token extracted from the URL</returns>
-    /// <exception cref="ArgumentException">Thrown when JWT token cannot be extracted</exception>
-    private static string ExtractJwtTokenFromPixUrl(string pixUrl)
-    {
-        if (string.IsNullOrWhiteSpace(pixUrl))
-        {
-            throw new ArgumentException("PIX URL is null or empty", nameof(pixUrl));
-        }
-        
-        var urlParts = pixUrl.Split('/');
-        
-        if (urlParts.Length == 0)
-        {
-            throw new ArgumentException("Invalid PIX URL format - no path segments found", nameof(pixUrl));
-        }
-
-        var potentialToken = urlParts[urlParts.Length - 1];
-
-        if (string.IsNullOrWhiteSpace(potentialToken))
-        {
-            throw new ArgumentException("JWT token not found in PIX URL - last path segment is empty", nameof(pixUrl));
-        }
-
-        if (!System.Text.RegularExpressions.Regex.IsMatch(potentialToken, @"^[a-zA-Z0-9\-_]+$"))
-        {
-            throw new ArgumentException($"Invalid JWT token format: '{potentialToken}' - should contain only alphanumeric characters, hyphens and underscores", nameof(pixUrl));
-        }
-
-        if (potentialToken.Length < 10)
-        {
-            throw new ArgumentException($"JWT token too short: '{potentialToken}' - expected at least 10 characters", nameof(pixUrl));
-        }
-
-        return potentialToken;
     }
     
     /// <summary>
@@ -269,21 +279,18 @@ public static class PixService
         }
 
         var crcMatch = System.Text.RegularExpressions.Regex.Match(emvCode, @"63\d{2}([A-F0-9]{4})$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-
         if (!crcMatch.Success)
         {
-            throw new ArgumentException("CRC field (63XX) not found at the end of EMV code", nameof(emvCode));
+            throw new ArgumentException("CRC field (63XX) not found at the end of EMV code", nameof(emvCode));            
         }
 
         var providedCrcHex = crcMatch.Groups[1].Value.ToUpperInvariant();
         
-        var crcFieldStart = crcMatch.Index;
-        
-        var payload = emvCode[..crcFieldStart];
+        var payload = emvCode.Substring(0, emvCode.Length - 4);
 
         try
         {
-            var calculatedCrc = CalculateCrc16Ccitt(payload);
+            var calculatedCrc = CalculateCrc16CcittFalse(payload);
             
             var calculatedCrcHex = calculatedCrc.ToString("X4");
 
@@ -299,42 +306,31 @@ public static class PixService
     }    
     
     /// <summary>
-    /// Calculates CRC-16 CCITT-FALSE checksum for PIX EMV codes
-    /// This is the CONFIRMED variant used by Cora PIX system
-    /// Polynomial: 0x1021 (x^16 + x^12 + x^5 + 1)
-    /// Initial value: 0xFFFF
-    /// RefIn: false, RefOut: false, XorOut: 0x0000
-    /// Uses ASCII encoding as per PIX specification
+    /// CRC-16 CCITT-FALSE: The CONFIRMED algorithm used by Cora PIX system
+    /// Poly=0x1021, Init=0xFFFF, RefIn=false, RefOut=false, XorOut=0x0000
+    /// This is the exact variant that matches Cora's EMV QR Code CRC calculation
     /// </summary>
-    /// <param name="data">Input string data (EMV payload without CRC)</param>
-    /// <returns>CRC-16 value</returns>
-    private static ushort CalculateCrc16Ccitt(string data)
+    private static ushort CalculateCrc16CcittFalse(string data)
     {
         const ushort polynomial = 0x1021;
         
-        ushort crc = 0xFFFF; 
-
-        var bytes = System.Text.Encoding.ASCII.GetBytes(data);
+        ushort crc = 0xFFFF;
+        
+        var bytes = Encoding.ASCII.GetBytes(data);
 
         foreach (var b in bytes)
         {
             crc ^= (ushort)(b << 8);
-
             for (int i = 0; i < 8; i++)
             {
                 if ((crc & 0x8000) != 0)
-                {
                     crc = (ushort)(((crc << 1) & 0xFFFF) ^ polynomial);
-                }
                 else
-                {
                     crc = (ushort)((crc << 1) & 0xFFFF);
-                }
             }
         }
-
-        return crc; 
-    }        
+        return crc;
+    }    
 
     #endregion Private Methods
 }

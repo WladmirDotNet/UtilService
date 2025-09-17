@@ -3,7 +3,7 @@ namespace UtilService.Util.Model;
 /// <summary>
 /// Represents the requirements for PIX validation operations
 /// </summary>
-public abstract class PixValidationRequirementModel
+public class PixValidationRequirementModel
 {
     /// <summary>
     /// Gets or sets the JWT public key domain used for PIX validation

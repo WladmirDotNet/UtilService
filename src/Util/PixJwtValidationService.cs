@@ -61,6 +61,73 @@ internal abstract class PixJwtValidattionService
             return PublicKeyUrlModel.Failure($"Error extracting public key URL: {ex.Message}");
         }
     }
+    
+    /// <summary>
+    /// Fetches JWT token from the specified URL
+    /// </summary>
+    internal static async Task<string> FetchJwtTokenAsync(string url)
+    {
+        try
+        {
+            HttpClient.DefaultRequestHeaders.Clear();
+            HttpClient.DefaultRequestHeaders.Add("User-Agent", "PaymentService/1.0");
+            HttpClient.DefaultRequestHeaders.Add("Accept", "application/json, text/plain, */*");
+
+            var response = await HttpClient.GetAsync("https://"+url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new ArgumentException($"HTTP {response.StatusCode}: {response.ReasonPhrase}");
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                throw new ArgumentException("Empty response from server");
+            }
+
+            string jwtToken = content;
+
+            if (content.TrimStart().StartsWith("{"))
+            {
+                try
+                {
+                    var jsonDoc = JsonDocument.Parse(content);
+                    var root = jsonDoc.RootElement;
+
+                    var jwtFields = new[] { "token", "jwt", "access_token", "id_token", "data", "payload" };
+
+                    foreach (var field in jwtFields)
+                    {
+                        if (root.TryGetProperty(field, out var tokenElement))
+                        {
+                            jwtToken = tokenElement.GetString() ?? content;
+                            break;
+                        }
+                    }
+                }
+                catch
+                {
+                    throw new ArgumentException("Incorrect JSON format");                    
+                }
+            }
+
+            return jwtToken;
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new ArgumentException($"HTTP request failed: {ex.Message}");
+        }
+        catch (TaskCanceledException ex)
+        {
+            throw new ArgumentException($"Request timeout: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            throw new ArgumentException($"Unexpected error: {ex.Message}");
+        }
+    }    
 
     /// <summary>
     /// Decodes JWT token and extracts header and payload
@@ -209,22 +276,6 @@ internal abstract class PixJwtValidattionService
             };
 
             TokenHandler.ValidateToken(jwtToken, tokenValidationParameters, out var validatedToken);
-
-            var nowUtc = DateTime.UtcNow;
-            
-            var validFromUtc = validatedToken.ValidFrom.ToUniversalTime();
-            
-            var validToUtc = validatedToken.ValidTo.ToUniversalTime();
-
-            if (nowUtc < validFromUtc)
-            {
-                return SignatureValidationModel.Failure($"Token not yet valid. ValidFrom: {validFromUtc:O} UTC");
-            }
-
-            if (nowUtc > validToUtc)
-            {
-                return SignatureValidationModel.Failure($"Token expired. ValidTo: {validToUtc:O} UTC");
-            }
 
             return SignatureValidationModel.Success();
         }
